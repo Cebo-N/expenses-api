@@ -1,7 +1,7 @@
 drop database expensesdb;
 drop user expenselogger;
 
-create user    with password 'oniyance';
+create user expenselogger with password 'oniyance';
 create database expensesdb with template=template0 owner=expenselogger;
 \connect expensesdb;
 

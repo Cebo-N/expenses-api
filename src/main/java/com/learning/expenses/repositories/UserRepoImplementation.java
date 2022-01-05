@@ -4,6 +4,7 @@ import com.learning.expenses.domain.User;
 import com.learning.expenses.exceptions.EtAuthException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
@@ -16,6 +17,10 @@ public class UserRepoImplementation implements UserRepository{
 
     private static final String SQL_INSERT = "INSERT INTO USERS(USER_ID, FIRST_NAME, LAST_NAME, EMAIL, PASSWORD) " +
             "VALUES (NEXTVAL('USERS_SEQ'), ?, ?, ?, ?)";
+
+    private static final String SQL_COUNT_BY_EMAIL = "SELECT COUNT(*) FROM USERS WHERE EMAIL = ?";
+
+    private static  final String SQL_FIND_BY_USER_ID = "SELECT * FROM USERS WHERE USER_ID = ? ";
 
     @Autowired
     JdbcTemplate jdbcTemplate;
@@ -45,11 +50,28 @@ public class UserRepoImplementation implements UserRepository{
 
     @Override
     public Integer getCountByEmail(String email) {
-        return null;
+        try{
+            return jdbcTemplate.queryForObject(SQL_COUNT_BY_EMAIL,Integer.class,new Object[]{email});
+        }catch(Exception ex){
+            throw new EtAuthException("Error occurred searching for the email");
+        }
     }
 
     @Override
     public User findById(Integer userId) {
-        return null;
+        try{
+            return jdbcTemplate.queryForObject(SQL_FIND_BY_USER_ID,userRowMapper,new Object[]{userId});
+        }catch(Exception ex){
+            throw new EtAuthException("Could not find user with id"+userId);
+        }
     }
+    private RowMapper<User> userRowMapper = ((results, index) ->{
+        return new User(results.getInt("USER_ID"),
+                results.getString("FIRST_NAME"),
+                results.getString("LAST_NAME"),
+                results.getString(("EMAIL")),
+                results.getString("PASSWORD"),
+                results.getDate("CREATED_AT")
+        );
+    });
 }
